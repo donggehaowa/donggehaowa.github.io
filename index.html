@@ -1,1 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <title>第一个three.js文件_WebGL三维场景</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      /* 隐藏body窗口区域滚动条 */
+    }
+  </style>
+  <!--引入three.js三维引擎-->
+  <!-- <script src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script> -->
+  <!-- <script src="/three.js"></script> -->
+  <script src="https://211m.oss-cn-hangzhou.aliyuncs.com/three.js"></script>
+</head>
+
+<body>
+  <script >
+    /**
+     * 创建场景对象Scene
+     */
+    var scene = new THREE.Scene();
+   scene.background = new THREE.Color('black')
+
+    /**
+     * 创建网格模型
+     */
+    // var geometry = new THREE.SphereGeometry(60, 40, 40); //创建一个球体几何对象
+    // var geometry = new THREE.BoxGeometry(100, 100, 100); //创建一个立方体几何对象Geometry
+    const loader = new THREE.TextureLoader()
+    var geometry = new THREE.IcosahedronGeometry(30);
+    var material = new THREE.MeshStandardMaterial({
+      // color: 0x80807e
+      color: 0xf2c056,
+      transparent:true,
+      // color: 0xdab273
+      // color: 0xeac787
+      side:THREE.DoubleSide
+
+    });
+
+     //材质对象Material
+    var mesh = new THREE.Mesh(geometry, material); //网格模型对象Mesh
+    mesh.castShadow = true;
+    mesh.position.y=60;
+    mesh.position.x=0;
+    mesh.position.z=10;
+    scene.add(mesh); 
+
+
+    //创建一个平面几何体作为投影面
+    var planeGeometry = new THREE.PlaneGeometry(2000, 1000);
+    var planeMaterial = new THREE.MeshLambertMaterial({
+      color: 0x888888
+    });
+    // 平面网格模型作为投影面
+    var planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+    // scene.add(); //网格模型添加到场景中
+    planeMesh.rotateX(-Math.PI/2 ); //旋转网格模型
+    planeMesh.position.z = 0; //设置网格模型y坐标
+    planeMesh.position.y=0;
+    planeMesh.position.x=-100;
+    // 设置接收阴影的投影面
+    planeMesh.receiveShadow = true;
+    scene.add(planeMesh);
+
+
+    /**
+     * 光源设置
+     */
+    //平行光源
+    var directLight=new THREE.DirectionalLight(0xffffff);
+    directLight.position.set(100,130,90);
+    directLight.target=mesh;
+    // 设置用于计算阴影的光源对象
+    directLight.castShadow = true;
+    // 设置计算阴影的区域，最好刚好紧密包围在对象周围
+    // 计算阴影的区域过大：模糊  过小：看不到或显示不完整
+    directLight.shadow.camera.near = -3000;
+    directLight.shadow.camera.far = 3000;
+    directLight.shadow.camera.left = -300;
+    directLight.shadow.camera.right = 300;
+    directLight.shadow.camera.top = 200;
+    directLight.shadow.camera.bottom = -200;
+    directLight.shadow.mapSize.set(1024,1024);
+    scene.add(directLight);
+
+
+  
+
+
+    //环境光
+    var ambient = new THREE.AmbientLight(0xffffff);
+    scene.add(ambient);
+    // console.log(scene)
+    // console.log(scene.children)
+    /**
+     * 相机设置
+     */
+    var width = window.innerWidth; //窗口宽度
+    var height = window.innerHeight; //窗口高度
+    var k = width / height; //窗口宽高比
+    var s = 100; //三维场景显示范围控制系数，系数越大，显示的范围越大
+    
+    // //创建相机对象
+    var camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 0.1, 100);
+    camera.position.set(50,3,60); //设置相机位置
+    // camera.lookAt(scene.position); //设置相机方向(指向的场景对象)
+    camera.lookAt(new THREE.Vector3(0,60,0));
+
+        //创建相机对象
+    // var camera = new THREE.PerspectiveCamera(120,16/9.0,0.01,1500);
+    // // camera.position.set(0, 0, 200); //设置相机位置
+    // camera.position.set(00,80,100);
+    // camera.lookAt(0,0,0);
+    // scene.add(camera);
+
+    /**
+     * 创建渲染器对象
+     */
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width, height);//设置渲染区域尺寸
+    renderer.setClearColor(0x888888, 1); //设置背景颜色
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement); //body元素中插入canvas对象
+    //执行渲染操作   指定场景、相机作为参数
+    renderer.render(scene, camera);
+    // var int=self.setInterval("clock()",10);
+    var offX=0;
+    var offY=0;
+    var offZ=0;
+    var xishu=1;
+    
+     var T0=new Date();
+     
+     var times=0;
+     var xishuNumber=0.1;
+     var transXTotal=0;
+
+
+     function clock(){
+      console.log("dingshiqi 定时器事件",mesh.position.y);
+       var Tnow=new Date();
+       let timeSpace = Tnow-T0;
+       mesh.rotateY(0.001*timeSpace);
+       // mesh.rotateX(0.001*timeSpace);
+       // mesh.rotateZ(0.001*timeSpace);
+
+       times++;
+       transXTotal+=xishuNumber*0.1;
+
+       if (transXTotal>1||transXTotal<-1) {
+          xishuNumber = -xishuNumber;
+
+       }
+       
+        // geometry.scale(1.1,1.1,1); 
+        // geometry.translate(0,0,transXTotal);
+       
+       //执行渲染操作   指定场景、相机作为参数
+       renderer.render(scene, camera);
+       T0=Tnow;
+       // console.log(geometry.vertices);
+
+
+        requestAnimationFrame(clock);
+
+    }
+    clock();
+    //递归遍厉
+    scene.traverse(function(e){
+      console.log(e.id,"|*|",e.type,"|*|",e.parent,"|*|",e.children);
+
+    })
+    var worldPosition = new THREE.Vector3();
+    console.log(worldPosition);
+    mesh.getWorldPosition(worldPosition);
+    console.log(worldPosition);
+
+
+
+
+
+  </script>
+</body>
+</html>
