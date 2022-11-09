@@ -1,181 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="2000" height="1000"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejs.org/build/three.module.js'
 
-<head>
-  <meta charset="UTF-8">
-  <title>第一个three.js文件_WebGL三维场景</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      /* 隐藏body窗口区域滚动条 */
-    }
-  </style>
-  <!--引入three.js三维引擎-->
-  <script src="https://threejs.org/build/three.module.js"></script>
-  <!-- <script src="./three.js"></script> -->
-  <!-- <script src="http://www.yanhuangxueyuan.com/threejs/build/three.js"></script> -->
-</head>
+      const canvas = document.querySelector('#c2d')
 
-<body>
-  <script>
-    /**
-     * 创建场景对象Scene
-     */
-    var scene = new THREE.Scene();
+      canvas.setAttribute('width',window.innerWidth);
+      canvas.setAttribute('height',window.innerHeight);
 
 
-    /**
-     * 创建网格模型
-     */
-    // var geometry = new THREE.SphereGeometry(60, 40, 40); //创建一个球体几何对象
-    // var geometry = new THREE.BoxGeometry(100, 100, 100); //创建一个立方体几何对象Geometry
-    var geometry = new THREE.IcosahedronGeometry(30);
-    var material = new THREE.MeshStandardMaterial({
-      // color: 0x80807e
-      color: 0xf2c056,
-      transparent:true,
-      // color: 0xdab273
-      // color: 0xeac787
-      side:THREE.DoubleSide
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
 
-    });
+      const fov = 90 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.0012 // 近平面
+      const far = 100000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 5, 20)
+      camera.lookAt(0, 2, 0)
 
-     //材质对象Material
-    var mesh = new THREE.Mesh(geometry, material); //网格模型对象Mesh
-    mesh.castShadow = true;
-
-    // mesh.translateY(80);
-    // mesh.translateY(80);
-    
-
-
-    //创建一个平面几何体作为投影面
-    var planeGeometry = new THREE.PlaneGeometry(300, 300);
-    var planeMaterial = new THREE.MeshLambertMaterial({
-      color: 0x888888
-    });
-    // 平面网格模型作为投影面
-    var planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-    // scene.add(); //网格模型添加到场景中
-    planeMesh.rotateX(-Math.PI / 2.5); //旋转网格模型
-    planeMesh.position.z = -100; //设置网格模型y坐标
-    // 设置接收阴影的投影面
-    planeMesh.receiveShadow = true;
-    // scene.add(directionalLight);
-
-    scene.add(mesh,planeMesh); //网格模型添加到场景中
-
-    /**
-     * 光源设置
-     */
-    //平行光源
-    var directLight=new THREE.DirectionalLight(0xffffff);
-    directLight.position.set(-300,10,1300);
-    directLight.target=mesh;
-    // 设置用于计算阴影的光源对象
-    directLight.castShadow = true;
-    // 设置计算阴影的区域，最好刚好紧密包围在对象周围
-    // 计算阴影的区域过大：模糊  过小：看不到或显示不完整
-    directLight.shadow.camera.near = -3000;
-    directLight.shadow.camera.far = 3000;
-    directLight.shadow.camera.left = -300;
-    directLight.shadow.camera.right = 300;
-    directLight.shadow.camera.top = 200;
-    directLight.shadow.camera.bottom = -200;
-    directLight.shadow.mapSize.set(1024,1024);
-    scene.add(directLight);
-
-    //点光源
-    // var point2 = new THREE.SpotLight(0xffffff);
-    // point2.position.set(0, 300, 100); //点光源位置
-    // scene.add(point2); //点光源添加到场景中
-
-
-    //环境光
-    var ambient = new THREE.AmbientLight(0xffffff);
-    scene.add(ambient);
-    // console.log(scene)
-    // console.log(scene.children)
-    /**
-     * 相机设置
-     */
-    var width = window.innerWidth; //窗口宽度
-    var height = window.innerHeight; //窗口高度
-    var k = width / height; //窗口宽高比
-    var s = 110; //三维场景显示范围控制系数，系数越大，显示的范围越大
-    //创建相机对象
-    var camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, -10000, 10000);
-    camera.position.set(0, 0, 1300); //设置相机位置
-    camera.lookAt(scene.position); //设置相机方向(指向的场景对象)
-
-    
-
-
-    /**
-     * 创建渲染器对象
-     */
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(width, height);//设置渲染区域尺寸
-    renderer.setClearColor(0xffffff, 1); //设置背景颜色
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild(renderer.domElement); //body元素中插入canvas对象
-    //执行渲染操作   指定场景、相机作为参数
-    renderer.render(scene, camera);
-    // var int=self.setInterval("clock()",10);
-    var offX=0;
-    var offY=0;
-    var offZ=0;
-    var xishu=1;
-    
-     var T0=new Date();
-     
-     var times=0;
-     var xishuNumber=0.1;
-     var transXTotal=0;
-
-
-     function clock(){
-      console.log("dingshiqi 定时器事件",mesh.position.y);
+      // 场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('black')
       
 
-      // if (offY>600||offY<-600) {
-      //   xishu = -xishu;
-      // }
-      //   offX+= xishu*5;
-      //   offY+=xishu*5;
 
-      //   camera.position.set(offX, -20, 180);
-      //   camera.lookAt(scene.position);
-       var Tnow=new Date();
-       let timeSpace = Tnow-T0;
-       mesh.rotateY(-0.001*timeSpace);
-       mesh.rotateX(-0.001*timeSpace);
-       // mesh2.rotateY(-0.001*timeSpace);
-       // mesh2.rotateX(-0.001*timeSpace);
+      {
+        // 地面 平铺
+        const planeSize = 200
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('https://threejs.org/manual/examples/resources/images/checker.png')
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.magFilter = THREE.NearestFilter
+        const repeats = planeSize / 2
+        texture.repeat.set(repeats, repeats)
+        const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize)
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide
+        })
+         const  mesh = new THREE.Mesh(planeGeo, planeMat)
+        mesh.rotation.x = Math.PI * -0.5
+        scene.add(mesh)
+      }
+      var  cubeMesh= null;
 
-       times++;
-       transXTotal+=xishuNumber*0.1;
+      {
+        // 方块
+        const cubeSize = 4
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
+        const cubeMat = new THREE.MeshPhongMaterial({ color: '#8f4b2e' })
+        cubeMesh= new THREE.Mesh(cubeGeo, cubeMat)
+        cubeMesh.position.y = 2
+        scene.add(cubeMesh)
+      }
 
-       if (transXTotal>1||transXTotal<-1) {
-          xishuNumber = -xishuNumber;
-
-       }
-       
-        // geometry.scale(1.1,1.1,1); 
-        // geometry.translate(0,0,transXTotal);
-       
-       //执行渲染操作   指定场景、相机作为参数
-       renderer.render(scene, camera);
-       T0=Tnow;
-       console.log(geometry.vertices);
+      {
+        
+      }
 
 
-        requestAnimationFrame(clock);
 
-    }
-    clock();
+      {
+        // 灯光
+        const color = 0xffffff
+        const intensity = 1
+        // 方向光
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(0, 10, 0)
+        light.target.position.set(-5, 0, 0)
+        scene.add(light)
+        scene.add(light.target)
+      }
 
-  </script>
-</body>
+      // 渲染
+      function render() {
+        cubeMesh.rotateY(0.01)
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+      render();
+      // requestAnimationFrame(render)
+    </script>
+  </body>
 </html>
